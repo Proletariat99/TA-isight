@@ -1,0 +1,29 @@
+# Bert Shuler (Splunk) and Dave Dyer (Science)
+# This is our list of stuff to do for version 1.1 
+# Current Version = 1.0 
+# Next Version = 1.1
+# TODO List for 1.1:
+- Update code to work in Windows 
+  - replace shell scripting with more pythony stuff (or os.check followed by .bat -- kinda ghetto)
+  - double check path capabilities
+- refactor error logging to include actual logging in def function
+- probably remove main.py 
+
+
+# Fixed from last version:
+- fix the time_tracker file to not grow infinitely -- only needs to keep 3 values.
+- add some logging (general debug logging using Splunk's builtin capabilities)
+x (not applicable) put it in an infinite loop so that it's a singleton when it runs.
+x (not applicable -- different approach -- inputs.conf setting) make the singleton configurable within the modular input settings (more settings)
+x (not done -- future version) configure modular input capabilities for other isight rest endpoints (reports, indexes, warnings, etc).
+
+
+# version 2.0 stuff
+- compartmentalize iocs into file v. web v. email
+- viz
+- stats
+- update web settings with advanced functionality (time, reports, etc)
+
+# version 3.0 stuff
+- separate configuration page to turn on the scheduled search.
+

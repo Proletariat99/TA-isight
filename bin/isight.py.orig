@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+import httplib
+import json
+import hashlib
+import hmac
+import urllib
+import urlparse
+import datetime
+import time
+import calendar
+import sys
+import csv
+
+import random, sys
+
+from splunklib.modularinput import *
+
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
+
+class MyScript(Script):
+    """All modular inputs should inherit from the abstract base class Script
+    from splunklib.modularinput.script.
+    They must override the get_scheme and stream_events functions, and,
+    if the scheme returned by get_scheme has Scheme.use_external_validation
+    set to True, the validate_input function.
+    """
+    def get_scheme(self):
+        """When Splunk starts, it looks for all the modular inputs defined by
+        its configuration, and tries to run them with the argument --scheme.
+        Splunkd expects the modular inputs to print a description of the
+        input in XML on stdout. The modular input framework takes care of all
+        the details of formatting XML and printing it. The user need only
+        override get_scheme and return a new Scheme object.
+
+        :return: scheme, a Scheme object
+        """
+        # "random_numbers" is the name Splunk will display to users for this input.
+        scheme = Scheme("ISIGHT")
+
+        scheme.description = "Retrieves threat data from http://www.isightpartners.com."
+        # If you set external validation to True, without overriding validate_input,
+        # the script will accept anything as valid. Generally you only need external
+        # validation if there are relationships you must maintain among the
+        # parameters, such as requiring min to be less than max in this example,
+        # or you need to check that some resource is reachable or valid.
+        # Otherwise, Splunk lets you specify a validation string for each argument
+        # and will run validation internally using that string.
+        scheme.use_external_validation = False
+        scheme.use_single_instance = True
+
+        pubkey_argument = Argument("PublicKey")
+        pubkey_argument.data_type = Argument.data_type_string
+        pubkey_argument.description = "The PublicKey associated with your isightpartners account."
+        pubkey_argument.required_on_create = True
+        # If you are not using external validation, you would add something like:
+        #
+        # scheme.validation = "min > 0"
+        scheme.add_argument(pubkey_argument)
+
+        privkey_argument = Argument("PrivateKey")
+        privkey_argument.data_type = Argument.data_type_string
+        privkey_argument.description = "The PrivateKey associated with your isightpartners account."
+        privkey_argument.required_on_create = True
+        scheme.add_argument(privkey_argument)
+
+        return scheme
+
+
+
+    def stream_events(self, inputs, ew):
+        """This function handles all the action: splunk calls this modular input
+        without arguments, streams XML describing the inputs to stdin, and waits
+        for XML on stdout describing events.
+
+        If you set use_single_instance to True on the scheme in get_scheme, it
+        will pass all the instances of this input to a single instance of this
+        script.
+
+        :param inputs: an InputDefinition object
+        :param ew: an EventWriter object
+        """
+        # Go through each input for this modular input
+        for input_name, input_item in inputs.inputs.iteritems():
+            # Get the values, cast them as floats
+            pub_key = string(input_item["PublicKey"])
+            priv_key  = string(input_item["PrivateKey"])
+
+            # Create an Event object, and set its data fields
+            event = Event()
+            event.stanza = input_name
+            event.data = "pubkey=\"%s\" privkey=\"%s\"" % pub_key, priv_key
+
+            # Tell the EventWriter to write this event
+            ew.write_event(event)
+
+if __name__ == "__main__":
+    sys.exit(MyScript().run(sys.argv))
